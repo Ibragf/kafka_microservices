@@ -1,0 +1,18 @@
+для успешного подключения коннектора к постгрес нужно будет войти
+ в терминал контейнера postgres и выполнить каждую команду ниже
+
+     docker exec -it postgres bash - вход в терминал контейнера
+
+     apt-get update
+     apt-get install -y postgresql-15-decoderbufs
+     docker-entrypoint.sh postgres
+
+curl -X GET "http://galaur.ru:9200/_cat/indices?v"
+curl -X GET "http://galaur.ru:9200/postgres.public.students/_search?q=*&size=1&from=0&pretty"
+curl -X GET "http://galaur.ru:9200/postgres.public.students/_search?pretty" -H 'Content-Type: application/json' -d'
+{ 
+  "size": 1, 
+  "_source": ["after"], 
+  "sort": [{"ts_ms": "desc"}] 
+}' 
+curl -XGET "http://galaur.ru:9200/dbserverpostgres.public.students/_search?pretty" -H 'Content-Type: application/json' -d' { "size": 1, "_source": ["after"], "sort": [{"ts_ms": "desc"}] }'

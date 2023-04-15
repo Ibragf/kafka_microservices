@@ -1,0 +1,26 @@
+{
+  "before": null,
+  "after": {
+    "id": "19ИО2723",
+    "name": "newname",
+    "surname": "asdas",
+    "group_fk": "БСБО-01-19"
+  },
+  "source": {
+    "version": "2.0.1.Final",
+    "connector": "postgresql",
+    "name": "postgres",
+    "ts_ms": 1681476042838,
+    "snapshot": "false",
+    "db": "rtumirea",
+    "sequence": "[\"37599912\",\"37600312\"]",
+    "schema": "public",
+    "table": "students",
+    "txId": 41873,
+    "lsn": 37600312,
+    "xmin": null
+  },
+  "op": "u",
+  "ts_ms": 1681476042875,
+  "transaction": null
+}

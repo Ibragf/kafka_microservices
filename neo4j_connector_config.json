@@ -1,0 +1,27 @@
+{
+  "name": "Neo4jSinkConnector",
+  "config": {
+    "topics": 
+        "postgres.public.institutes, postgres.public.students, postgres.public.groups, postgres.public.departments, postgres.public.courses, postgres.public.specialities, postgres.public.lessons",
+    "connector.class": "streams.kafka.connect.sink.Neo4jSinkConnector",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": false,
+    "value.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter.schemas.enable": false,
+    "errors.retry.timeout": "-1",
+    "errors.retry.delay.max.ms": "1000",
+    "errors.tolerance": "all",
+    "errors.log.enable": true,
+    "errors.log.include.messages": true,
+    "neo4j.server.uri": "bolt://neo4j:7687",
+    "neo4j.authentication.basic.username": "neo4j",
+    "neo4j.authentication.basic.password": "12345678",
+    "neo4j.topic.cypher.postgres.public.institutes": "call apoc.do.case ([event.op = 'd', 'MATCH (i:Institute {id : b_id}) DETACH DELETE i',event.op = 'c', 'create (i:Institute {id: a_id, name: a_name})',event.op = 'u', 'MATCH (i:Institute {id:a_id}) SET i.name = a_name'], '',{b_id:event.before.id, a_id:event.after.id, a_name:event.after.name}) yield value AS v RETURN v",
+    "neo4j.topic.cypher.postgres.public.students": "call apoc.do.case ([event.op = 'd', 'MATCH (s:Student {id : b_id}) DETACH DELETE s', event.op = 'u', 'MATCH (s:Student {id:a_id})-[m:member_of]->(g1:Group) MERGE (g2:Group {id:a_group_fk}) DELETE (m) create (s)-[:member_of]->(g2)', event.op = 'c', 'MERGE (g:Group {id: a_group_fk}) create (s:Student{id: a_id})-[:member_of]->(g)'], '', { b_id:event.before.id, a_id:event.after.id, a_group_fk:event.after.group_fk}) yield value AS v RETURN v",
+    "neo4j.topic.cypher.postgres.public.groups": "call apoc.do.case ([event.op = 'd', 'MATCH (g:Group {id : b_id}) DETACH DELETE g', event.op = 'c', 'MERGE (s:Speciality {id: a_spfk}) create (g:Group {id: a_id})-[:member_of]->(s)', event.op = 'u', 'MATCH (g:Group {id:a_id})-[m:member_of]->(s1:Speciality) MERGE (s2:Speciality {id:a_spfk}) DELETE (m) create (g)-[:member_of]->(s2)'], '',{ b_id:event.before.id, b_spfk:event.before.speciality_fk, a_spfk:event.after.speciality_fk, a_id:event.after.id}) yield value AS v RETURN v",
+    "neo4j.topic.cypher.postgres.public.departments": "call apoc.do.case([event.op = 'd', 'match (d:Department{id : b_id}) detach delete d', event.op = 'c', 'MERGE (i:Institute{id: a_instfk}) CREATE (d:Department{id: a_id, name: a_name})-[:member_of]->(i)', event.op = 'u', 'MATCH (d:Department{id:a_id})-[m:member_of]->(i1:Institute) MERGE (i2:Institute{id:a_instfk}) delete (m) create (d)-[:member_of]->(i2)'], '', {b_instfk:event.before.institute_fk, a_instfk: event.after.institute_fk, b_id:event.before.id, a_id:event.after.id, a_name:event.after.name}) yield value as v return v",
+    "neo4j.topic.cypher.postgres.public.courses": "call apoc.do.case([event.op = 'd', 'match (c:Course{id : b_id}) detach delete c', event.op = 'c', 'MERGE (s:Department {id:a_dpfk}) CREATE (c:Course{id: a_id, name: a_name})-[:member_of]->(s)', event.op = 'u', 'MATCH(co:Course{id:a_id})-[m:member_of]->(d1:Department) MERGE (d2:Department{id:a_dpfk}) delete (m) create (co)-[:member_of]->(d2)'], '', {a_id: event.after.id, b_id:event.before.id, b_dpfk:event.before.department_fk, a_dpfk:event.after.department_fk, a_name:event.after.name}) yield value as v return v",
+    "neo4j.topic.cypher.postgres.public.specialities":"call apoc.do.case([event.op = 'd', 'match (s:Speciality{id : b_id}) detach delete s', event.op = 'u', 'MATCH(s:Speciality{id:a_id})-[m:member_of]->(d1:Department) MERGE (d2:Department{id:a_dpfk}) delete (m) create (s)-[:member_of]->(d2)', event.op = 'c', 'MERGE (d:Deparment{id:a_dpfk}) create (s:Speciality{id: a_id, name: a_name})-[:member_of]->(d)'], '', {b_id:event.before.id, b_dpfk:event.before.department_fk, a_dpfk:event.after.department_fk, a_id:event.after.id, a_name: event.after.name}) yield value as v return v",
+    "neo4j.topic.cypher.postgres.public.lessons": "call apoc.do.case([event.op = 'd', 'match (l:Lesson{id : b_id}) detach delete l', event.op='u', 'MATCH(l:Lesson{id:a_id})-[m:member_of]->(c1:Course) MERGE (c2:Course{id:a_cfk}) delete (m) create (l)-[:member_of]->(c2)', event.op = 'c', 'MERGE (c:Course{id: a_cfk}) create (l:Lesson{id: a_id, name:a_name})-[:member_of]->(c)'], '', {b_id:event.before.id, a_id:event.after.id, a_name:event.after.name, b_cfk:event.before.course_fk, a_cfk:event.after.course_fk}) yield value as v return v"
+  }
+}
